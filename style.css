@@ -1,16 +1,11 @@
-/* ═══════════════════════════════════════════════════
-   NovaTech Landing Page — style.css
-   Estética: Oscuro refinado + acentos vibrantes
-   ═══════════════════════════════════════════════════ */
- 
-/* ── Variables ── */
+
 :root {
   --bg:       #080c14;
   --bg2:      #0d1320;
   --bg3:      #111827;
   --surface:  #161d2e;
   --border:   rgba(255,255,255,0.08);
-  --accent:   #6366f1;
+  --accent:   #5254cc;
   --accent2:  #a78bfa;
   --gold:     #f59e0b;
   --green:    #10b981;
@@ -40,7 +35,6 @@ ul { list-style: none; }
 img { display: block; max-width: 100%; }
 input, textarea, select, button { font-family: var(--font-b); }
  
-/* ── Utility ── */
 .tag {
   display: inline-block;
   font-size: 0.75rem;
@@ -80,10 +74,7 @@ input, textarea, select, button { font-family: var(--font-b); }
   transition: border-color var(--trans), color var(--trans);
 }
 .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); }
- 
-/* ════════════════════════════════════
-   NAV
-   ════════════════════════════════════ */
+
 #navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -172,9 +163,7 @@ input, textarea, select, button { font-family: var(--font-b); }
 }
 .mobile-menu a:hover { color: var(--white); }
  
-/* ════════════════════════════════════
-   HERO
-   ════════════════════════════════════ */
+
 #hero {
   min-height: 100vh;
   display: flex;
@@ -309,9 +298,7 @@ input, textarea, select, button { font-family: var(--font-b); }
   50% { transform: translateY(-10px); }
 }
  
-/* ════════════════════════════════════
-   SECTION COMMON
-   ════════════════════════════════════ */
+
 section {
   padding: 100px 32px;
 }
@@ -330,9 +317,7 @@ section {
 }
 .section-header p { color: var(--muted); font-size: 1.05rem; font-weight: 300; }
  
-/* ════════════════════════════════════
-   SERVICIOS
-   ════════════════════════════════════ */
+
 #servicios { max-width: 1200px; margin: 0 auto; padding: 100px 32px; }
 .services-grid {
   display: grid;
@@ -364,9 +349,7 @@ section {
 .service-link { font-size: 0.875rem; font-weight: 600; color: var(--accent2); transition: gap var(--trans); }
 .service-link:hover { color: var(--white); }
  
-/* ════════════════════════════════════
-   MISIÓN
-   ════════════════════════════════════ */
+
 #mision {
   background: var(--bg2);
   position: relative;
@@ -461,9 +444,7 @@ section {
   border-radius: 99px;
 }
  
-/* ════════════════════════════════════
-   CONTACTO
-   ════════════════════════════════════ */
+
 #contacto {
   background: var(--bg2);
   border-top: 1px solid var(--border);
@@ -538,10 +519,7 @@ section {
 }
 .btn-submit:hover { background: #7c7ff5; transform: translateY(-2px); box-shadow: 0 0 50px rgba(99,102,241,0.5); }
 .form-note { grid-column: 1/-1; font-size: 0.875rem; min-height: 1.2em; text-align: center; }
- 
-/* ════════════════════════════════════
-   FOOTER
-   ════════════════════════════════════ */
+
 #footer {
   background: var(--bg);
   border-top: 1px solid var(--border);
@@ -583,17 +561,11 @@ section {
   color: var(--muted);
 }
  
-/* ════════════════════════════════════
-   ANIMATIONS
-   ════════════════════════════════════ */
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(20px); }
   to   { opacity: 1; transform: none; }
 }
  
-/* ════════════════════════════════════
-   RESPONSIVE
-   ════════════════════════════════════ */
 @media (max-width: 1024px) {
   .mision-inner { grid-template-columns: 1fr; gap: 40px; }
   .footer-inner { grid-template-columns: 1fr 1fr; gap: 32px; }
