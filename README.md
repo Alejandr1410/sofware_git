@@ -160,3 +160,78 @@ document.getElementById('btn-enviar').addEventListener('click', () => {
     console.log('Formulario válido ✓');
   }
 });
+//Tabla básica
+```html
+<div id="mi-tabla"></div>
+<script src="../data-table/index.js"></script>
+<script>
+  const tabla = DataTable({
+    containerId: 'mi-tabla',
+    columns: [
+      { key: 'id',     label: 'ID' },
+      { key: 'nombre', label: 'Nombre' },
+      { key: 'email',  label: 'Correo' },
+    ],
+    data: [
+      { id: 1, nombre: 'Ana',  email: 'ana@mail.com' },
+      { id: 2, nombre: 'Luis', email: 'luis@mail.com' },
+    ],
+  });
+</script>
+```
+
+//Con render personalizado y badge de estado
+```js
+const tabla = DataTable({
+  containerId: 'mi-tabla',
+  columns: [
+    { key: 'nombre', label: 'Nombre' },
+    {
+      key: 'estado',
+      label: 'Estado',
+      render: (val) => {
+        const color = val === 'Activo' ? 'green' : val === 'Inactivo' ? 'red' : 'yellow';
+        return `<span class="dt-badge ${color}">${val}</span>`;
+      }
+    },
+  ],
+  data: [...],
+  pageSize: 10,
+});
+```
+
+//Con click en fila
+```js
+const tabla = DataTable({
+  containerId: 'mi-tabla',
+  columns: [...],
+  data: [...],
+  onRowClick: (row) => {
+    console.log('Fila seleccionada:', row);
+    abrirDetalle(row.id);
+  },
+});
+```
+
+//Búsqueda y carga dinámica
+```js
+// Buscar programáticamente
+tabla.search('García');
+
+// Cargar nuevos datos (por ejemplo, de una API)
+const nuevos = await fetch('/api/usuarios').then(r => r.json());
+tabla.setData(nuevos);
+```
+
+//Columna no ordenable
+```js
+{ key: 'acciones', label: 'Acciones', sortable: false,
+  render: (_, row) => `<button onclick="editar(${row.id})">✏ Editar</button>` }
+```
+
+git checkout main
+git checkout -b compañero/toast-notification
+git add .
+git commit -m "feat: agrega componente ToastNotification con 4 tipos"
+git commit -m "feat: agrega tests del ToastNotification"
+git push origin compañero/toast-notification
