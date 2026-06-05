@@ -111,8 +111,6 @@ El revisor aprueba el PR. El autor hace merge a `main`.
 6. **Contacto** — Formulario con validación
 7. **Footer** — Pie de página con enlaces y redes sociales
 ---
- 
-*Práctica colaborativa — Control de versiones con Git y GitHub*
 
 const campo = InputValidator(config);
 
