@@ -113,3 +113,52 @@ El revisor aprueba el PR. El autor hace merge a `main`.
 ---
  
 *Práctica colaborativa — Control de versiones con Git y GitHub*
+
+const campo = InputValidator(config);
+
+campo.getValue()        // → string  — valor actual
+campo.isValid()         // → boolean — estado de validez
+campo.setValue('texto') // → void    — establece valor y revalida
+campo.validate()        // → boolean — fuerza validación y muestra errores
+campo.reset()           // → void    — limpia todo
+
+<div id="mi-email"></div>
+<script src="../input-validator/index.js"></script>
+<script>
+  const email = InputValidator({
+    containerId: 'mi-email',
+    type: 'email',
+    label: 'Correo electrónico',
+    placeholder: 'tu@correo.com',
+    required: true,
+    onChange: (value, isValid) => console.log(value, isValid),
+  });
+</script>
+
+const pass = InputValidator({
+  containerId: 'mi-pass',
+  type: 'password',
+  label: 'Contraseña',
+  required: true,
+  minLength: 8,
+  onValidate: (isValid, errors) => {
+    if (!isValid) console.warn('Errores:', errors);
+  },
+});
+
+const user = InputValidator({
+  containerId: 'mi-usuario',
+  type: 'text',
+  label: 'Nombre de usuario',
+  required: true,
+  minLength: 3,
+  maxLength: 20,
+  pattern: /^[a-z0-9_]+$/,
+  patternMsg: 'Solo letras minúsculas, números y _',
+});
+
+document.getElementById('btn-enviar').addEventListener('click', () => {
+  if (email.validate() && pass.validate()) {
+    console.log('Formulario válido ✓');
+  }
+});
