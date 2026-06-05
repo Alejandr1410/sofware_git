@@ -327,6 +327,215 @@
     }, { threshold: 0.12 });
     document.querySelectorAll('.service-card, .team-card, .mision-card').forEach(el => observer.observe(el));
   </script>
+  function InputValidator(config) {
+  if (!config?.containerId) throw new Error('[InputValidator] config.containerId es requerido');
+  if (!config?.type)        throw new Error('[InputValidator] config.type es requerido');
+ 
+  const container = document.getElementById(config.containerId);
+  if (!container) throw new Error(`[InputValidator] Contenedor "${config.containerId}" no encontrado`);
+ 
+  let _value = '', _isValid = false, _dirty = false;
+ 
+  const RULES = {
+    email:    { re: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,          msg: 'Ingresa un correo válido (ej: usuario@correo.com)' },
+    phone:    { re: /^[\d\s\-\+\(\)]{7,15}$/,              msg: 'Ingresa un teléfono válido (7-15 dígitos)' },
+    password: { re: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/, msg: 'Mínimo 8 caracteres, 1 mayúscula, 1 minúscula y 1 número' },
+    number:   { re: /^\d+(\.\d+)?$/,                        msg: 'Solo se permiten números' },
+  };
+ 
+  const iType = config.type === 'password' ? 'password' : config.type === 'email' ? 'email' : 'text';
+ 
+  container.innerHTML = `
+    <div class="iv-wrap">
+      <label class="iv-label" for="${config.containerId}_inp">
+        ${config.label || ''}${config.required ? ' <span class="iv-req">*</span>' : ''}
+      </label>
+      <div class="iv-row">
+        <input class="iv-inp" id="${config.containerId}_inp" type="${iType}"
+          placeholder="${config.placeholder || ''}"
+          ${config.maxLength ? `maxlength="${config.maxLength}"` : ''} autocomplete="off" />
+        <span class="iv-ico" id="${config.containerId}_ico"></span>
+      </div>
+      <ul class="iv-errs" id="${config.containerId}_errs"></ul>
+      ${config.maxLength ? `<span class="iv-cnt" id="${config.containerId}_cnt">0/${config.maxLength}</span>` : ''}
+    </div>`;
+ 
+  if (!document.getElementById('iv-css')) {
+    const s = document.createElement('style'); s.id = 'iv-css';
+    s.textContent = `
+      .iv-wrap{display:flex;flex-direction:column;gap:5px;font-family:'Segoe UI',sans-serif}
+      .iv-label{font-size:.85rem;font-weight:600;color:#94a3b8}
+      .iv-req{color:#f87171}
+      .iv-row{position:relative;display:flex;align-items:center}
+      .iv-inp{width:100%;padding:11px 38px 11px 14px;background:#0f172a;border:1.5px solid #1e293b;
+        border-radius:8px;color:#e2e8f0;font-size:.9rem;outline:none;transition:border .2s,box-shadow .2s;font-family:inherit}
+      .iv-inp:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.15)}
+      .iv-inp.ok{border-color:#10b981}.iv-inp.err{border-color:#f87171}
+      .iv-ico{position:absolute;right:11px;font-size:1rem;pointer-events:none;transition:color .2s}
+      .iv-errs{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+      .iv-errs li{font-size:.76rem;color:#f87171}
+      .iv-cnt{font-size:.72rem;color:#475569;text-align:right}`;
+    document.head.appendChild(s);
+  }
+ 
+  const inp  = document.getElementById(`${config.containerId}_inp`);
+  const ico  = document.getElementById(`${config.containerId}_ico`);
+  const errs = document.getElementById(`${config.containerId}_errs`);
+  const cnt  = document.getElementById(`${config.containerId}_cnt`);
+ 
+  function _check(v) {
+    const e = [];
+    if (config.required && !v.trim()) e.push('Este campo es obligatorio');
+    if (v && config.minLength && v.length < config.minLength) e.push(`Mínimo ${config.minLength} caracteres`);
+    if (v && config.maxLength && v.length > config.maxLength) e.push(`Máximo ${config.maxLength} caracteres`);
+    const r = RULES[config.type];
+    if (v && r && !r.re.test(v)) e.push(r.msg);
+    if (v && config.pattern && !config.pattern.test(v)) e.push(config.patternMsg || 'Formato no válido');
+    return e;
+  }
+ 
+  function _ui(v, errors) {
+    if (cnt) cnt.textContent = `${v.length}/${config.maxLength}`;
+    inp.classList.remove('ok','err'); errs.innerHTML = ''; ico.textContent = '';
+    if (!_dirty) return;
+    if (!errors.length && (v.trim() || !config.required)) {
+      inp.classList.add('ok'); ico.textContent='✓'; ico.style.color='#10b981';
+    } else if (errors.length) {
+      inp.classList.add('err'); ico.textContent='✕'; ico.style.color='#f87171';
+      errors.forEach(e => { const li=document.createElement('li'); li.textContent=e; errs.appendChild(li); });
+    }
+  }
+ 
+  inp.addEventListener('input', e => {
+    _dirty=true; _value=e.target.value;
+    const errors=_check(_value); _isValid=!errors.length&&(_value.trim()||!config.required);
+    _ui(_value,errors);
+    config.onChange?.(_value,_isValid);
+  });
+  inp.addEventListener('blur', () => {
+    _dirty=true; const errors=_check(_value);
+    _isValid=!errors.length&&(_value.trim()||!config.required);
+    _ui(_value,errors); config.onValidate?.(_isValid,errors);
+  });
+ 
+  return {
+    getValue:  ()  => _value,
+    isValid:   ()  => _isValid,
+    setValue:  v   => { _dirty=true;_value=v;inp.value=v;const e=_check(v);_isValid=!e.length;_ui(v,e); },
+    validate:  ()  => { _dirty=true;const e=_check(_value);_isValid=!e.length&&(!!_value.trim()||!config.required);_ui(_value,e);config.onValidate?.(_isValid,e);return _isValid; },
+    reset:     ()  => { _value='';_isValid=false;_dirty=false;inp.value='';inp.classList.remove('ok','err');errs.innerHTML='';ico.textContent='';if(cnt)cnt.textContent=`0/${config.maxLength}`; },
+  };
+}
+ 
+if (typeof module !== 'undefined') module.exports = InputValidator;
+      function ToastNotification(config = {}) {
+  const pos      = config.position  || 'top-right';
+  const maxItems = config.maxToasts || 5;
+ 
+  if (!document.getElementById('tn-css')) {
+    const s = document.createElement('style'); s.id = 'tn-css';
+    s.textContent = `
+      .tn-box{position:fixed;z-index:9999;display:flex;flex-direction:column;gap:10px;
+        pointer-events:none;max-width:360px;width:calc(100% - 32px);padding:16px;font-family:'Segoe UI',sans-serif}
+      .tn-box.top-right{top:0;right:0} .tn-box.top-left{top:0;left:0}
+      .tn-box.bottom-right{bottom:0;right:0;flex-direction:column-reverse}
+      .tn-box.bottom-left{bottom:0;left:0;flex-direction:column-reverse}
+      .tn-box.top-center{top:0;left:50%;transform:translateX(-50%)}
+      .tn-item{display:flex;align-items:flex-start;gap:11px;background:#1e2a3a;
+        border:1px solid rgba(255,255,255,.08);border-left:4px solid transparent;
+        border-radius:10px;padding:13px 14px;pointer-events:all;
+        box-shadow:0 8px 30px rgba(0,0,0,.4);animation:tn-in .3s cubic-bezier(.34,1.56,.64,1) both;
+        position:relative;overflow:hidden}
+      .tn-item.tn-out{animation:tn-out .25s ease forwards}
+      .tn-item.success{border-left-color:#10b981}
+      .tn-item.error{border-left-color:#f87171}
+      .tn-item.warning{border-left-color:#f59e0b}
+      .tn-item.info{border-left-color:#60a5fa}
+      .tn-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+      .tn-body{flex:1;min-width:0}
+      .tn-title{font-weight:700;font-size:.85rem;color:#f1f5f9;margin-bottom:2px}
+      .tn-msg{font-size:.83rem;color:#94a3b8;line-height:1.5;word-break:break-word}
+      .tn-acts{margin-top:7px}
+      .tn-act{font-size:.78rem;font-weight:600;padding:4px 12px;border-radius:6px;
+        border:none;cursor:pointer;background:rgba(255,255,255,.1);color:#e2e8f0;
+        transition:background .2s;font-family:inherit}
+      .tn-act:hover{background:rgba(255,255,255,.2)}
+      .tn-x{background:none;border:none;color:#475569;cursor:pointer;
+        font-size:.95rem;line-height:1;padding:1px 3px;flex-shrink:0;
+        transition:color .2s;font-family:inherit}
+      .tn-x:hover{color:#e2e8f0}
+      .tn-bar{position:absolute;bottom:0;left:0;height:2px;
+        background:rgba(255,255,255,.18);animation:tn-bar linear forwards}
+      @keyframes tn-in{from{opacity:0;transform:translateX(16px) scale(.96)}to{opacity:1;transform:none}}
+      @keyframes tn-out{from{opacity:1;transform:none;max-height:120px}
+        to{opacity:0;transform:translateX(16px) scale(.95);max-height:0;padding:0;margin:0}}
+      @keyframes tn-bar{from{width:100%}to{width:0}}`;
+    document.head.appendChild(s);
+  }
+ 
+  let box = document.getElementById('tn-box');
+  if (!box) {
+    box = document.createElement('div');
+    box.id = 'tn-box';
+    box.className = `tn-box ${pos}`;
+    document.body.appendChild(box);
+  }
+ 
+  const ICON = { success:'✓', error:'✕', warning:'⚠', info:'ℹ' };
+  const active = new Map();
+ 
+  function show(opts = {}) {
+    if (!opts.message) throw new Error('[ToastNotification] message es requerido');
+    const id  = `tn-${Date.now()}-${Math.random().toString(36).slice(2,6)}`;
+    const typ = opts.type || 'info';
+    const dur = opts.duration !== undefined ? opts.duration : 4000;
+ 
+    if (active.size >= maxItems) dismiss(active.keys().next().value);
+ 
+    const el = document.createElement('div');
+    el.className = `tn-item ${typ}`; el.id = id;
+    el.setAttribute('role','alert');
+    el.innerHTML = `
+      <span class="tn-icon">${ICON[typ]||'ℹ'}</span>
+      <div class="tn-body">
+        ${opts.title?`<div class="tn-title">${opts.title}</div>`:''}
+        <div class="tn-msg">${opts.message}</div>
+        ${opts.action?`<div class="tn-acts"><button class="tn-act" id="${id}_act">${opts.action}</button></div>`:''}
+      </div>
+      ${opts.closable!==false?`<button class="tn-x" id="${id}_x">✕</button>`:''}
+      ${dur>0?`<div class="tn-bar" style="animation-duration:${dur}ms"></div>`:''}`;
+ 
+    box.appendChild(el);
+ 
+    const xBtn = document.getElementById(`${id}_x`);
+    if (xBtn) xBtn.addEventListener('click', () => dismiss(id));
+    const aBtn = document.getElementById(`${id}_act`);
+    if (aBtn && opts.onAction) aBtn.addEventListener('click', () => { opts.onAction(); dismiss(id); });
+ 
+    const timer = dur > 0 ? setTimeout(() => dismiss(id), dur) : null;
+    active.set(id, { el, timer, onClose: opts.onClose });
+    return id;
+  }
+ 
+  function dismiss(id) {
+    const e = active.get(id); if (!e) return;
+    clearTimeout(e.timer); e.el.classList.add('tn-out');
+    setTimeout(() => { e.el.remove(); active.delete(id); e.onClose?.(); }, 260);
+  }
+ 
+  function dismissAll() { [...active.keys()].forEach(dismiss); }
+ 
+  return {
+    show, dismiss, dismissAll,
+    success: (msg, o={}) => show({...o, message:msg, type:'success'}),
+    error:   (msg, o={}) => show({...o, message:msg, type:'error'}),
+    warning: (msg, o={}) => show({...o, message:msg, type:'warning'}),
+    info:    (msg, o={}) => show({...o, message:msg, type:'info'}),
+  };
+}
+ 
+if (typeof module !== 'undefined') module.exports = ToastNotification;
+ 
 </body>
 </html>
  
